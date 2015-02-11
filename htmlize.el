@@ -360,7 +360,9 @@ output.")
       ;; Additionally, we include the entire region that specifies the
       ;; `display' property.
       (when (get-char-property pos 'display)
-        (setq pos (next-single-char-property-change pos 'display nil limit)))
+        (when (equal (htmlize-overlay-faces-at pos)
+                     (htmlize-overlay-faces-at (1- pos)))
+          (setq pos (next-single-char-property-change pos 'display nil limit))))
       pos)))
  (t
   (error "htmlize requires next-single-property-change or \
