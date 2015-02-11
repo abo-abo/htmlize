@@ -1,4 +1,4 @@
-;;; htmlize.el --- Convert buffer text and decorations to HTML.
+;;; htmlize.el --- Convert buffer text and decorations to HTML. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1997-2003,2005,2006,2009,2011,2012 Hrvoje Niksic
 
@@ -847,7 +847,7 @@ This is used to protect mailto links without modifying their meaning."
   (goto-char (point-min))
   (while (search-forward "Local Variables:" nil t)
     (replace-match "Local Variables&#58;" nil t)))
-  
+
 
 ;;; Color handling.
 
@@ -1390,7 +1390,7 @@ property and by buffer overlays that specify `face'."
 ;; `insert-head', `body-tag', and `text-markup'.  Not all output types
 ;; define all methods.
 ;;
-;; Methods are called either with (htmlize-method METHOD ARGS...) 
+;; Methods are called either with (htmlize-method METHOD ARGS...)
 ;; special form, or by accessing the function with
 ;; (htmlize-method-function 'METHOD) and calling (funcall FUNCTION).
 ;; The latter form is useful in tight loops because `htmlize-method'
@@ -1550,7 +1550,7 @@ it's called with the same value of KEY.  All other times, the cached
     (format "<body text=\"%s\" bgcolor=\"%s\">"
 	    (htmlize-fstruct-foreground fstruct)
 	    (htmlize-fstruct-background fstruct))))
-       
+
 (defun htmlize-font-text-markup (fstruct-list buffer)
   ;; In `font' mode, we use the traditional HTML means of altering
   ;; presentation: <font> tag for colors, <b> for bold, <u> for
@@ -1926,7 +1926,6 @@ corresponding source file."
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not cl-functions lexical unresolved obsolete)
-;; lexical-binding: t
 ;; End:
 
 ;;; htmlize.el ends here
