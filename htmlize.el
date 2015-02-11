@@ -1754,8 +1754,6 @@ does not name a directory, it will be used as output file name."
         (font-lock-mode nil)
         (font-lock-auto-fontify nil)
         (global-font-lock-mode nil)
-        ;; Ignore the size limit for the purposes of htmlization.
-        (font-lock-maximum-size nil)
         ;; Disable font-lock support modes.  This will only work in
         ;; more recent Emacs versions, so htmlize-buffer-1 still needs
         ;; to call htmlize-ensure-fontified.
