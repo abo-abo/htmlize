@@ -531,7 +531,7 @@ list."
     (when (plist-get imgprops :file)
       (let ((location (plist-get (cdr (find-image (list imgprops))) :file)))
         (when location
-          (setq imgprops (plist-put (copy-list imgprops) :file location)))))
+          (setq imgprops (plist-put (cl-copy-list imgprops) :file location)))))
     (if htmlize-force-inline-images
         (let ((location (plist-get imgprops :file))
               data)
@@ -579,7 +579,7 @@ list."
  0 (length htmlize-ellipsis) 'htmlize-ellipsis t htmlize-ellipsis)
 
 (defun htmlize-match-inv-spec (inv)
-  (member* inv buffer-invisibility-spec
+  (cl-member inv buffer-invisibility-spec
            :key (lambda (i)
                   (if (symbolp i) i (car i)))))
 
@@ -601,7 +601,7 @@ list."
     ;; CDR, replace the invisible text with an ellipsis.
     (let ((match (if (symbolp invisible)
                      (htmlize-match-inv-spec invisible)
-                   (some #'htmlize-match-inv-spec invisible))))
+                   (cl-some #'htmlize-match-inv-spec invisible))))
       (cond ((null match) t)
             ((cdr-safe (car match)) 'ellipsis)
             (t nil)))))
@@ -625,7 +625,7 @@ list."
     (if additions
         (let ((textlist nil)
               (strpos 0))
-          (dolist (add (stable-sort additions #'< :key #'car))
+          (dolist (add (cl-stable-sort additions #'< :key #'car))
             (let ((addpos (car add))
                   (addtext (cdr add)))
               (push (substring text strpos addpos) textlist)
@@ -1021,7 +1021,7 @@ If no rgb.txt file is found, return nil."
     (while head
       (let ((inherit (face-attribute (car head) :inherit)))
         (cond ((listp inherit)
-               (setcdr tail (copy-list inherit))
+               (setcdr tail (cl-copy-list inherit))
                (setq tail (last tail)))
               ((eq inherit 'unspecified))
               (t
@@ -1033,7 +1033,7 @@ If no rgb.txt file is found, return nil."
               for f in face-list
               for h = (face-attribute f :height)
               collect (if (eq h 'unspecified) nil h))))
-      (reduce 'htmlize-merge-size (cons nil size-list)))))
+      (cl-reduce 'htmlize-merge-size (cons nil size-list)))))
 
 (defun htmlize-face-css-name (face)
   ;; Generate the css-name property for the given face.  Emacs places
@@ -1116,7 +1116,7 @@ If no rgb.txt file is found, return nil."
          ;; return it.
          (car fstruct-list))
         (t
-         (reduce #'htmlize-merge-two-faces
+         (cl-reduce #'htmlize-merge-two-faces
                  (cons (make-htmlize-fstruct) fstruct-list)))))
 
 ;; GNU Emacs 20+ supports attribute lists in `face' properties.  For
@@ -1225,14 +1225,14 @@ property and by buffer overlays that specify `face'."
       (while (< pos (point-max))
         (setq face-prop (get-text-property pos 'face)
               next (or (next-single-property-change pos 'face) (point-max)))
-        (setq faces (nunion (htmlize-decode-face-prop face-prop)
+        (setq faces (cl-nunion (htmlize-decode-face-prop face-prop)
                             faces :test 'equal))
         (setq pos next)))
     ;; Faces used by overlays.
     (dolist (overlay (overlays-in (point-min) (point-max)))
       (let ((face-prop (overlay-get overlay 'face)))
-        (setq faces (nunion (htmlize-decode-face-prop face-prop)
-                            faces :test 'equal))))
+        (setq faces (cl-nunion (htmlize-decode-face-prop face-prop)
+                               faces :test 'equal))))
     faces))
 
 ;; htmlize-faces-at-point returns the faces in use at point.  The
@@ -1252,25 +1252,25 @@ property and by buffer overlays that specify `face'."
     ;; Faces from overlays.
     (let ((overlays
            ;; Collect overlays at point that specify `face'.
-           (delete-if-not (lambda (o)
-                            (overlay-get o 'face))
-                          (overlays-at (point))))
+           (cl-delete-if-not (lambda (o)
+                               (overlay-get o 'face))
+                             (overlays-at (point))))
           list face-prop)
       ;; Sort the overlays so the smaller (more specific) ones
       ;; come later.  The number of overlays at each one
       ;; position should be very small, so the sort shouldn't
       ;; slow things down.
-      (setq overlays (sort* overlays
-                            ;; Sort by ascending...
-                            #'<
-                            ;; ...overlay size.
-                            :key (lambda (o)
-                                   (- (overlay-end o)
-                                      (overlay-start o)))))
+      (setq overlays (cl-sort overlays
+                              ;; Sort by ascending...
+                              #'<
+                              ;; ...overlay size.
+                              :key (lambda (o)
+                                     (- (overlay-end o)
+                                        (overlay-start o)))))
       ;; Overlay priorities, if present, override the above
       ;; established order.  Larger overlay priority takes
       ;; precedence and therefore comes later in the list.
-      (setq overlays (stable-sort
+      (setq overlays (cl-stable-sort
                       overlays
                       ;; Reorder (stably) by acending...
                       #'<
@@ -1323,7 +1323,7 @@ property and by buffer overlays that specify `face'."
 That means that GENERATOR will be evaluated and returned the first time
 it's called with the same value of KEY.  All other times, the cached
 \(memoized) value will be returned."
-  (let ((value (gensym)))
+  (let ((value (cl-gensym)))
     `(let ((,value (gethash ,key htmlize-memoization-table)))
        (unless ,value
          (setq ,value ,generator)
@@ -1380,7 +1380,7 @@ it's called with the same value of KEY.  All other times, the cached
                      (htmlize-css-specs (gethash 'default face-map))
                      "\n        ")
           "\n      }\n")
-  (dolist (face (sort* (copy-list buffer-faces) #'string-lessp
+  (dolist (face (cl-sort (cl-copy-list buffer-faces) #'string-lessp
                        :key (lambda (f)
                               (htmlize-fstruct-css-name (gethash f face-map)))))
     (let* ((fstruct (gethash face face-map))
@@ -1504,7 +1504,7 @@ it's called with the same value of KEY.  All other times, the cached
       (unwind-protect
            (let* ((buffer-faces (htmlize-faces-in-buffer))
                   (face-map (htmlize-make-face-map (adjoin 'default buffer-faces)))
-                  (places (gensym))
+                  (places (cl-gensym))
                   (title (if (buffer-file-name)
                              (file-name-nondirectory (buffer-file-name))
                            (buffer-name))))
@@ -1571,7 +1571,7 @@ it's called with the same value of KEY.  All other times, the cached
                  ;; happens in invisible regions).
                  (when (> (length text) 0)
                    ;; Open the new markup if necessary and insert the text.
-                   (when (not (equalp fstruct-list last-fstruct-list))
+                   (when (not (cl-equalp fstruct-list last-fstruct-list))
                      (funcall close-markup)
                      (setq last-fstruct-list fstruct-list
                            close-markup (funcall text-markup fstruct-list htmlbuf)))
@@ -1824,8 +1824,5 @@ corresponding source file."
   (htmlize-many-files (dired-get-marked-files nil arg) target-directory))
 
 (provide 'htmlize)
-
-;; Local Variables:
-;; End:
 
 ;;; htmlize.el ends here
