@@ -939,14 +939,9 @@ If no rgb.txt file is found, return nil."
           (t
            ;; We're getting the RGB components from Emacs.
            (let ((rgb
-                  (if (fboundp 'color-instance-rgb-components)
-                      (mapcar (lambda (arg)
-                                (/ arg 256))
-                              (color-instance-rgb-components
-                               (make-color-instance color)))
-                    (mapcar (lambda (arg)
-                              (/ arg 256))
-                            (color-values color)))))
+                  (mapcar (lambda (arg)
+                            (/ arg 256))
+                          (color-values color))))
              (when rgb
                (setq rgb-string (apply #'format "#%02x%02x%02x" rgb))))))
     ;; If RGB-STRING is still nil, it means the color cannot be found,
@@ -1614,28 +1609,10 @@ it's called with the same value of KEY.  All other times, the cached
   ;; actually fontify the buffer.  If font-lock is not in use, we
   ;; don't care because, except in htmlize-file, we don't force
   ;; font-lock on the user.
-  (when (and (boundp 'font-lock-mode)
-             font-lock-mode)
-    ;; In part taken from ps-print-ensure-fontified in GNU Emacs 21.
-    (cond
-      ((and (boundp 'jit-lock-mode)
-            (symbol-value 'jit-lock-mode))
-       (htmlize-with-fontify-message
-        (jit-lock-fontify-now (point-min) (point-max))))
-      ((and (boundp 'lazy-lock-mode)
-            (symbol-value 'lazy-lock-mode))
-       (htmlize-with-fontify-message
-        (lazy-lock-fontify-region (point-min) (point-max))))
-      ((and (boundp 'lazy-shot-mode)
-            (symbol-value 'lazy-shot-mode))
-       (htmlize-with-fontify-message
-        ;; lazy-shot is amazing in that it must *refontify* the region,
-        ;; even if the whole buffer has already been fontified.  <sigh>
-        (lazy-shot-fontify-region (point-min) (point-max))))
-      ;; There's also fast-lock, but we don't need to handle specially,
-      ;; I think.  fast-lock doesn't really defer fontification, it
-      ;; just saves it to an external cache so it's not done twice.
-      )))
+  (when (and (bound-and-true-p font-lock-mode)
+             (bound-and-true-p jit-lock-mode))
+    (htmlize-with-fontify-message
+     (jit-lock-fontify-now (point-min) (point-max)))))
 
 
 ;;;###autoload
